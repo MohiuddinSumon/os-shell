@@ -178,7 +178,7 @@ disabled = true
 
 # Git branch configuration
 [git_branch]
-symbol = " "
+symbol = " "
 style = "bold purple"
 
 # Git status configuration
