@@ -178,12 +178,26 @@ if [ ! -f "$HOME/.config/starship.toml" ]; then
     cat > "$HOME/.config/starship.toml" << 'EOF'
 # Starship Configuration
 
+# Custom format: time and directory on first line, prompt on second line
+format = """
+$time$directory$git_branch$git_status
+$character"""
+
 # Add date and time to the prompt
 [time]
 disabled = false
 format = '[$time]($style) '
 style = "bold cyan"
 time_format = "%d/%m/%Y %H:%M:%S"
+
+[directory]
+style = "bold blue"
+truncation_length = 3
+truncate_to_repo = true
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
 
 # Disable cloud provider modules
 [aws]
@@ -199,6 +213,7 @@ disabled = true
 [git_branch]
 symbol = " "
 style = "bold purple"
+format = " [$symbol$branch]($style)"
 
 # Git status configuration
 [git_status]
@@ -238,6 +253,63 @@ EOF
     print_success "Starship config created"
 else
     print_skip "Starship config already exists at ~/.config/starship.toml"
+fi
+
+# Setup SSH for GitHub
+print_status "Setting up SSH config for GitHub..."
+mkdir -p "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+
+if [ ! -f "$HOME/.ssh/config" ]; then
+    touch "$HOME/.ssh/config"
+    chmod 600 "$HOME/.ssh/config"
+fi
+
+# Add GitHub SSH config if not present
+if ! grep -q "Host github.com" "$HOME/.ssh/config"; then
+    cat >> "$HOME/.ssh/config" << 'SSHEOF'
+
+# GitHub
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    AddKeysToAgent yes
+SSHEOF
+    print_success "GitHub SSH config added"
+else
+    print_skip "GitHub SSH config already exists"
+fi
+
+# Generate SSH key for GitHub if it doesn't exist
+if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
+    echo ""
+    read -p "Generate SSH key for GitHub? (y/n): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        read -p "Enter your GitHub email: " github_email
+        ssh-keygen -t ed25519 -C "$github_email" -f "$HOME/.ssh/id_ed25519" -N ""
+        
+        # Start ssh-agent and add key
+        eval "$(ssh-agent -s)" >> "$LOGFILE" 2>&1
+        ssh-add "$HOME/.ssh/id_ed25519" >> "$LOGFILE" 2>&1
+        
+        print_success "SSH key generated: ~/.ssh/id_ed25519.pub"
+        echo ""
+        echo "================================================"
+        echo "  Add this SSH key to your GitHub account:"
+        echo "================================================"
+        echo ""
+        cat "$HOME/.ssh/id_ed25519.pub"
+        echo ""
+        echo "Go to: https://github.com/settings/keys"
+        echo "================================================"
+        echo ""
+    else
+        print_warning "Skipped SSH key generation. Generate manually with: ssh-keygen -t ed25519 -C 'your_email@example.com'"
+    fi
+else
+    print_skip "SSH key already exists at ~/.ssh/id_ed25519"
 fi
 
 # Set Zsh as default shell (optional, won't block script)
