@@ -412,13 +412,20 @@ fi
 
 # PostgreSQL
 if command_exists psql; then
-    print_skip "PostgreSQL"
+    print_skip "PostgreSQL ($(psql --version))"
 else
-    print_status "Installing PostgreSQL..."
-    sudo apt install -y postgresql postgresql-contrib >> "$LOGFILE" 2>&1
+    print_status "Installing PostgreSQL 18..."
+    
+    # Add PostgreSQL official repository for latest version
+    sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+    wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
+    
+    sudo apt update >> "$LOGFILE" 2>&1
+    sudo apt install -y postgresql-18 postgresql-contrib-18 >> "$LOGFILE" 2>&1
+    
     sudo systemctl enable postgresql >> "$LOGFILE" 2>&1
     sudo systemctl start postgresql >> "$LOGFILE" 2>&1
-    print_success "PostgreSQL installed and started"
+    print_success "PostgreSQL 18 installed and started"
 fi
 
 # DBeaver
