@@ -1,3 +1,10 @@
+# For Ubuntu use ubuntu_setup.sh
+chmod +x ubuntu-setup.sh
+./ubuntu-setup.sh
+
+
+
+## FOr windows following will work
 # os-shell
 
 cat ~/.bashrc | clip
