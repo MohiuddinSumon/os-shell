@@ -179,8 +179,15 @@ if [ ! -f "$HOME/.config/starship.toml" ]; then
 # Starship Configuration
 
 # Custom format: time and directory on first line, prompt on second line
+# ~/.config/starship.toml
+
+# Add a newline between prompt lines
+add_newline = true
+
+# Format string that defines the prompt layout
 format = """
-$time$directory$git_branch$git_status
+$time$python$nodejs$golang$docker_context
+$directory$git_branch$git_status
 $character"""
 
 # Add date and time to the prompt
@@ -195,6 +202,39 @@ style = "bold blue"
 truncation_length = 3
 truncate_to_repo = true
 
+# Git branch configuration
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "[$symbol$branch]($style)"
+
+# Git status configuration
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+style = "bold yellow"
+stashed = 'stash:${count}'
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+conflicted = "=${count}"
+deleted = "✘${count}"
+renamed = "»${count}"
+modified = "!${count}"
+staged = "+${count}"
+untracked = "?${count}"
+
+# Python virtual environment
+[python]
+symbol = "🐍 "
+style = "bold yellow"
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+detect_extensions = ["py"]
+detect_files = [".python-version", "Pipfile", "pyproject.toml", "requirements.txt"]
+detect_folders = [".venv", "venv"]
+pyenv_version_name = false
+python_binary = ["python3", "python"]
+
+# Character that appears before input
 [character]
 success_symbol = "[>](bold green)"
 error_symbol = "[>](bold red)"
@@ -209,38 +249,10 @@ disabled = true
 [azure]
 disabled = true
 
-# Git branch configuration
-[git_branch]
-symbol = " "
-style = "bold purple"
-format = " [$symbol$branch]($style)"
-
-# Git status configuration
-[git_status]
-# Define the format for the entire git_status module
-format = '([\[$all_status$ahead_behind\]]($style) )'
-# Define the style (e.g., color and boldness)
-style = "bold yellow"
-# Define the symbols and format to show the count of each status
-stashed = 'stash:${count}'
-ahead = "⇡${count}"
-behind = "⇣${count}"
-diverged = "⇕⇡${ahead_count}⇣${behind_count}"
-conflicted = "=${count}"
-deleted = "✘${count}"
-renamed = "»${count}"
-modified = "!${count}"
-staged = "+${count}"
-untracked = "?${count}"
-
 # Language/Tool configurations
 [nodejs]
 symbol = "⬢ "
 style = "bold green"
-
-[python]
-symbol = "🐍 "
-style = "bold yellow"
 
 [golang]
 symbol = "🐹 "
@@ -249,6 +261,7 @@ style = "bold cyan"
 [docker_context]
 symbol = "🐳 "
 style = "bold blue"
+
 EOF
     print_success "Starship config created"
 else
